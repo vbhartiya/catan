@@ -5,6 +5,7 @@
 #define NUMBER_OF_ROLLS		11
 #define NODES_PER_TILE		6
 #define NUMBER_OF_PLAYERS	4
+#define MAX_TILES_PER_ROLL	2
 
 struct Tile
 {
@@ -40,12 +41,13 @@ public:
 	static void Setup();
 	static void CleanUp();
 
-	void Place(char type, int source, int destination);
+	void Build(char type, int source, int destination);
 	void EndTurn();
 
 	void AddTile(const Tile& tile);
 
 	std::string& GetBoard();
+	void DistributeResources(int roll);
 
 	Player GetCurrentPlayer();
 	int GetCurrentPlayerId();
@@ -59,8 +61,9 @@ private:
 
 	std::string board;
 	int currentPlayer;
+	bool setupPhase;
 
 	Player players[NUMBER_OF_PLAYERS];
-	Tile tiles[NUMBER_OF_ROLLS][2];
+	Tile tiles[NUMBER_OF_ROLLS][MAX_TILES_PER_ROLL];
 	Node nodes[NUMBER_OF_NODES];
 };

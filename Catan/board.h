@@ -45,5 +45,12 @@
 "                                  2:1        [5053B\\]                [5154B/]         2:1  			 \n"\
 "                                              [N53NB][5354B-][N54NB]                     	 \n\n"
 
+#define COSTS ""\
+"\t%17s | 1 Brick, 1 Lumber\n"\
+"\t%17s | 1 Brick, 1 Lumber, 1 Grain, 1 Wool\n"\
+"\t%17s | 2 Grain, 3 Ore\n"\
+"\t%17s | 1 Grain, 1 Wool, 1 Ore\n"\
+
+
 std::string InitRandomBoard();
 bool ReplaceSubstring(std::string& input, const char* original, const char* replacement, size_t length, unsigned int ocurrence = 0);

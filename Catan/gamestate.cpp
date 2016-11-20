@@ -4,6 +4,7 @@
 #include "board.h"
 #include "enums.h"
 #include "player.h"
+#include "renderer.h"
 #include "gamestate.h"
 
 static char colorChars[] = { 'R', 'C', 'Y', 'G' };
@@ -59,6 +60,7 @@ GameState::GameState()
 {
 	board = "";
 	currentPlayer = -1;
+	setupPhase = true;
 }
 
 GameState* GameState::GetState()
@@ -75,6 +77,7 @@ void GameState::Setup()
 {
 	state->board = InitRandomBoard();
 	state->currentPlayer = 0;
+	state->setupPhase = true;
 
 	for (int i = 0; i < NUMBER_OF_NODES; i++)
 	{
@@ -103,6 +106,39 @@ std::string& GameState::GetBoard()
 	return board;
 }
 
+void GameState::DistributeResources(int roll)
+{
+	char buffer[16];
+	sprintf_s(buffer, "Player %d", currentPlayer + 1);
+
+	PrintColoredText(colorInts[currentPlayer], buffer);
+
+	printf(" rolled %d\n\n", roll);
+
+	if (roll == 7)
+	{
+		/// TODO : Add mechanics for robber
+		return;
+	}
+
+	for (int i = 0; i < MAX_TILES_PER_ROLL; i++)
+	{
+		Tile &t = tiles[roll - 2][i];
+		if (t.type == NumResources) continue;
+
+		for (int j = 0; j < NODES_PER_TILE; j++)
+		{
+			int nodeIndex = t.nodes[j] - 1;
+			if (nodes[nodeIndex].owningPlayer > -1)
+			{
+				int playerIndex = nodes[nodeIndex].owningPlayer;
+
+				players[playerIndex].AddResource(t.type, (nodes[nodeIndex].building == City) ? 2 : 1);
+			}
+		}
+	}
+}
+
 Player GameState::GetCurrentPlayer()
 {
 	return players[currentPlayer];
@@ -118,7 +154,7 @@ int GameState::GetCurrentPlayerColor()
 	return colorInts[currentPlayer];
 }
 
-void GameState::Place(char type, int source, int destination)
+void GameState::Build(char type, int source, int destination)
 {
 	if (source > destination && destination > 0)
 	{
@@ -134,15 +170,26 @@ void GameState::Place(char type, int source, int destination)
 	switch (type)
 	{
 	case 'r':
+		if (!setupPhase && !GetCurrentPlayer().CanBuild(Road))
+		{
+			printf("Not enough resources to build a road.");
+		}
+
 		sprintf_s(substring, "[%02d%02dB", source, destination);
 		sprintf_s(replacement, "[%02d%02d%c", source, destination, colorChars[currentPlayer]);
 
 		if (ReplaceSubstring(board, substring, replacement, 6))
 		{
-
+			GetCurrentPlayer().Build(Road);
 		}
 		break;
+
 	case 's':
+		if (!setupPhase && !GetCurrentPlayer().CanBuild(Settlement))
+		{
+			printf("Not enough resources to build a settlement.");
+		}
+
 		sprintf_s(substring, "[N%02dNB]", source);
 		sprintf_s(replacement, "[N%02d%c%c]", source, colorChars[currentPlayer], 'S');
 
@@ -150,15 +197,25 @@ void GameState::Place(char type, int source, int destination)
 		{
 			nodes[source - 1].building = Settlement;
 			nodes[source - 1].owningPlayer = currentPlayer;
+
+			GetCurrentPlayer().Build(Settlement);
 		}
 		break;
+
 	case 'c':
+		if (!setupPhase && !GetCurrentPlayer().CanBuild(City))
+		{
+			printf("Not enough resources to build a city.");
+		}
+
 		sprintf_s(substring, "[N%02d%cS]", source, colorChars[currentPlayer]);
 		sprintf_s(replacement, "[N%02d%c%c]", source, colorChars[currentPlayer], 'C');
 
 		if (ReplaceSubstring(board, substring, replacement, 7))
 		{
 			nodes[source - 1].building = City;
+
+			GetCurrentPlayer().Build(City);
 		}
 		break;
 	}

@@ -1,5 +1,6 @@
 #include <string>
 #include <vector>
+#include <algorithm>
 #include <iostream>
 
 #include <ctype.h>
@@ -28,9 +29,13 @@ void Exec_Print(const strvec& params)
 	{
 		GameState::GetState()->GetCurrentPlayer().PrintResources();
 	}
+	else if (params[1] == "costs")
+	{
+		printf(COSTS, "Road", "Settlement", "City", "Developement Card");
+	}
 }
 
-void Exec_Place(const strvec& params)
+void Exec_Build(const strvec& params)
 {
 	if (params.size() < 3 || params.size() > 4)
 	{
@@ -63,17 +68,17 @@ void Exec_Place(const strvec& params)
 			return;
 		}
 
-		state->Place('r', src, dst);
+		state->Build('r', src, dst);
 	}
 	else
 	{
 		if (params[1] == "city")
 		{
-			state->Place('c', src, 0);
+			state->Build('c', src, 0);
 		}
 		else if (params[1] == "settlement")
 		{
-			state->Place('s', src, 0);
+			state->Build('s', src, 0);
 		}
 		else
 		{
@@ -86,7 +91,17 @@ void Exec_Place(const strvec& params)
 
 void Exec_Roll(const strvec& params)
 {
+	int die1, die2;
+	for (int i = 0; i < 20; i++)
+	{
+		die1 = (rand() % 6) + 1;
+		die2 = (rand() % 6) + 1;
+		printf("\t%d, %d\r", die1, die2);
+		Sleep(50);
+	}
+	printf("\n");
 
+	GameState::GetState()->DistributeResources(die1 + die2);
 }
 
 void Exec_Reset(const strvec& params)
@@ -107,11 +122,18 @@ void Exec_Help(const strvec& params)
 	COMMANDS
 }
 
+std::string ToLowerString(const std::string& str)
+{
+	std::string lowered(str);
+	std::transform(str.begin(), str.end(), lowered.begin(), tolower);
+
+	return lowered;
+}
+
 bool Execute(const strvec& arguments)
 {
-
 #undef FUNC
-#define FUNC(x, usage) else if(#x == arguments[0]) Exec_##x(arguments);
+#define FUNC(x, usage) else if(ToLowerString(#x) == arguments[0]) Exec_##x(arguments);
 
 	if (arguments[0] == "exit")
 	{
@@ -138,7 +160,7 @@ void ParseCommand(const char* command, std::vector<std::string>& arguments)
 		}
 		else
 		{
-			arguments[c] += (command[i]);
+			arguments[c] += tolower(command[i]);
 		}
 	}
 }
