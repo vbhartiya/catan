@@ -1,4 +1,4 @@
-
+#include <map>
 #include <string>
 
 #include "board.h"
@@ -94,6 +94,8 @@ void GameState::Setup()
 		else if (i == 48 || i == 49) state->nodes[i].port = LumberPort;
 		else if (i == 50 || i == 51) state->nodes[i].port = BrickPort;
 	}
+
+	ParseNodeNeighbours(state->nodes, state->board);
 }
 
 void GameState::CleanUp()
@@ -163,6 +165,9 @@ void GameState::Build(char type, int source, int destination)
 		destination = tmp;
 	}
 
+	source--;
+	destination--;
+
 	char substring[8], replacement[8];
 
 	bool updated = false;
@@ -170,50 +175,107 @@ void GameState::Build(char type, int source, int destination)
 	switch (type)
 	{
 	case 'r':
+	{
 		if (!setupPhase && !GetCurrentPlayer().CanBuild(Road))
 		{
-			printf("Not enough resources to build a road.");
+			printf("Not enough resources to build a road.\n");
+			return;
 		}
 
-		sprintf_s(substring, "[%02d%02dB", source, destination);
-		sprintf_s(replacement, "[%02d%02d%c", source, destination, colorChars[currentPlayer]);
+		bool prevRoadExists = false;
+		for (auto itr = nodes[source].neighbours.begin(); itr != nodes[source].neighbours.end(); itr++)
+		{
+			if (itr->second == currentPlayer)
+			{
+				prevRoadExists = true;
+			}
+		}
+
+		if (!prevRoadExists)
+		{
+			for (auto itr = nodes[destination].neighbours.begin(); itr != nodes[destination].neighbours.end(); itr++)
+			{
+				if (itr->second == currentPlayer)
+				{
+					prevRoadExists = true;
+				}
+			}
+		}
+
+		if (nodes[source].owningPlayer != currentPlayer && nodes[destination].owningPlayer != currentPlayer && !prevRoadExists)
+		{
+			printf("Roads must be build from a settlement or city, or continue another road.\n");
+			return;
+		}
+
+		sprintf_s(substring, "[%02d%02dB", source + 1, destination + 1);
+		sprintf_s(replacement, "[%02d%02d%c", source + 1, destination + 1, colorChars[currentPlayer]);
 
 		if (ReplaceSubstring(board, substring, replacement, 6))
 		{
+			nodes[source].neighbours[destination] = currentPlayer;
+			nodes[destination].neighbours[source] = currentPlayer;
 			GetCurrentPlayer().Build(Road);
 		}
 		break;
-
+	}
 	case 's':
-		if (!setupPhase && !GetCurrentPlayer().CanBuild(Settlement))
+	{
+		if (!setupPhase)
 		{
-			printf("Not enough resources to build a settlement.");
+			if (!GetCurrentPlayer().CanBuild(Settlement))
+			{
+				printf("Not enough resources to build a settlement.\n");
+				return;
+			}
+
 		}
 
-		sprintf_s(substring, "[N%02dNB]", source);
-		sprintf_s(replacement, "[N%02d%c%c]", source, colorChars[currentPlayer], 'S');
+		bool roadExists = false;
+		for (auto itr = nodes[source].neighbours.begin(); itr != nodes[source].neighbours.end(); itr++)
+		{
+			if (nodes[itr->first].owningPlayer != -1)
+			{
+				printf("Cannot build a settlement at %02d since %02d is already occupied.\n", source + 1, itr->first + 1);
+				return;
+			}
+
+			if (itr->second == currentPlayer)
+			{
+				roadExists = true;
+			}
+		}
+
+		if (!setupPhase && !roadExists)
+		{
+			printf("Cannot build a settlement as no usable roads lead to %02d.\n", source + 1);
+			return;
+		}
+
+		sprintf_s(substring, "[N%02dNB]", source + 1);
+		sprintf_s(replacement, "[N%02d%c%c]", source + 1, colorChars[currentPlayer], 'S');
 
 		if (ReplaceSubstring(board, substring, replacement, 7))
 		{
-			nodes[source - 1].building = Settlement;
-			nodes[source - 1].owningPlayer = currentPlayer;
+			nodes[source].building = Settlement;
+			nodes[source].owningPlayer = currentPlayer;
 
 			GetCurrentPlayer().Build(Settlement);
 		}
 		break;
-
+	}
 	case 'c':
 		if (!setupPhase && !GetCurrentPlayer().CanBuild(City))
 		{
-			printf("Not enough resources to build a city.");
+			printf("Not enough resources to build a city.\n");
 		}
 
-		sprintf_s(substring, "[N%02d%cS]", source, colorChars[currentPlayer]);
-		sprintf_s(replacement, "[N%02d%c%c]", source, colorChars[currentPlayer], 'C');
+		sprintf_s(substring, "[N%02d%cS]", source + 1, colorChars[currentPlayer]);
+		sprintf_s(replacement, "[N%02d%c%c]", source + 1, colorChars[currentPlayer], 'C');
 
 		if (ReplaceSubstring(board, substring, replacement, 7))
 		{
-			nodes[source - 1].building = City;
+			nodes[source].building = City;
 
 			GetCurrentPlayer().Build(City);
 		}

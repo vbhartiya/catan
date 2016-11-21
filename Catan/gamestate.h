@@ -13,7 +13,7 @@ struct Tile
 	unsigned int roll;
 	std::string odds;
 
-	unsigned int nodes[6];
+	unsigned int nodes[NODES_PER_TILE];
 
 	Tile() : type(Resource::NumResources), roll(0), odds("") {}
 	Tile(Resource type, unsigned int roll);
@@ -27,6 +27,8 @@ struct Node
 	Building building;
 	Port port;
 	int owningPlayer;
+
+	std::map<int, int> neighbours; // The second int represents if there is a road between this node and it's neighbour, and who owns it.
 
 	Node()
 		: building(Building::None), port(Port::NoPort), owningPlayer(-1)

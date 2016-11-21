@@ -51,6 +51,8 @@
 "\t%17s | 2 Grain, 3 Ore\n"\
 "\t%17s | 1 Grain, 1 Wool, 1 Ore\n"\
 
+struct Node;
 
 std::string InitRandomBoard();
 bool ReplaceSubstring(std::string& input, const char* original, const char* replacement, size_t length, unsigned int ocurrence = 0);
+void ParseNodeNeighbours(Node* nodes, const std::string& board);

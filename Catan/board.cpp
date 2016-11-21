@@ -1,3 +1,4 @@
+#include <map>
 #include <string>
 #include <time.h>
 
@@ -45,13 +46,11 @@ std::string InitRandomBoard()
 																{40,41,46,47,51,52},
 																{45,46,50,51,53,54} };
 
-	int numberOfTiles = 19;
-
 	GameState* state = GameState::GetState();
 
 	std::string board(BOARD);
 
-	for (int i = 0; i < numberOfTiles; i++)
+	for (int i = 0; i < NUMBER_OF_TILES; i++)
 	{
 		Resource type = (Resource)(rand() % (int)NumResources);
 
@@ -86,6 +85,24 @@ std::string InitRandomBoard()
 	}
 
 	return board;
+}
+
+void ParseNodeNeighbours(Node *nodes, const std::string& board)
+{
+	for (int i = 0; i < NUMBER_OF_NODES; i++)
+	{
+		for (int j = i + 1; j < NUMBER_OF_NODES && j < i + 7; j++)
+		{
+			char buf[16];
+			sprintf_s(buf, "[%02d%02d", i + 1, j + 1);
+
+			if (board.find(buf) != std::string::npos)
+			{
+				nodes[i].neighbours[j] = -1;
+				nodes[j].neighbours[i] = -1;
+			}
+		}
+	}
 }
 
 bool ReplaceSubstring(std::string& input, const char* original, const char* replacement, size_t length, unsigned int ocurrence)
