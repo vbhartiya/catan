@@ -56,3 +56,4 @@ struct Node;
 std::string InitRandomBoard();
 bool ReplaceSubstring(std::string& input, const char* original, const char* replacement, size_t length, unsigned int ocurrence = 0);
 void ParseNodeNeighbours(Node* nodes, const std::string& board);
+bool IsValidRoad(const std::string& board, int source, int destination);

@@ -105,6 +105,22 @@ void ParseNodeNeighbours(Node *nodes, const std::string& board)
 	}
 }
 
+bool IsValidRoad(const std::string& board, int source, int destination)
+{
+	char buf[16];
+	sprintf_s(buf, "[%02d%02dB", source, destination);
+
+	std::string srcDest(buf);
+	std::string left = srcDest + "\\]";
+	std::string right = srcDest + "/]";
+	std::string straight = srcDest + "-]";
+
+	return board.find(left, 0) != std::string::npos ||
+		   board.find(right, 0) != std::string::npos ||
+		   board.find(straight, 0) != std::string::npos;
+
+}
+
 bool ReplaceSubstring(std::string& input, const char* original, const char* replacement, size_t length, unsigned int ocurrence)
 {
 	size_t index = 0;

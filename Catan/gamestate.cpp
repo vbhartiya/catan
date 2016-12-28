@@ -196,6 +196,12 @@ void GameState::Build(char type, int source, int destination)
 			return;
 		}
 
+		if (!IsValidRoad(board, source + 1, destination + 1))
+		{
+			printf("No valid road found between %02d and %02d\n", source + 1, destination + 1);
+			return;
+		}
+
 		bool prevRoadExists = false;
 		for (auto itr = nodes[source].neighbours.begin(); itr != nodes[source].neighbours.end(); itr++)
 		{

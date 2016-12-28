@@ -4,8 +4,6 @@ Things to do:
 - Developement cards
 	- add a probability curve representing the distribution in a normal deck
 	- card effects
-- Building
-	- Should check if there is actually a road between SRC and DST (e.g. 39 to 45 is a buildable road but 30 to 45 isn't)
 - Turn history
 - Game history
 - Add welcome message
