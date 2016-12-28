@@ -11,7 +11,10 @@ public:
 
 	bool CanBuild(Building item);
 	void Build(Building item);
+
+	unsigned int GetBuiltItemCount(Building building) const;
 	unsigned int GetResourceCount(Resource res) const;
 private:
 	unsigned int resources[NumResources];
+	std::map<Building, unsigned int> builtItems;
 };

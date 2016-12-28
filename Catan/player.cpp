@@ -1,4 +1,6 @@
 #include <string>
+#include <vector>
+#include <map>
 
 #include "enums.h"
 #include "player.h"
@@ -7,6 +9,9 @@ Player::Player()
 {
 	for (int i = 0; i < NumResources; i++)
 		resources[i] = 0;
+
+	for (int i = 0; i < NumBuildings; i++)
+		builtItems[(Building)i] = 0;
 }
 
 void Player::PrintResources()
@@ -67,24 +72,38 @@ void Player::Build(Building item)
 		resources[Brick] -= 1;
 		resources[Lumber] -= 1;
 		resources[Wool] -= 1;
+
+		builtItems[Settlement]++;
 		break;
 
 	case City:
 		resources[Grain] -= 2;
 		resources[Ore] -= 3;
+
+		builtItems[Settlement]--;
+		builtItems[City]++;
 		break;
 
 	case Road:
 		resources[Brick] -= 1;
 		resources[Lumber] -= 1;
+
+		builtItems[Road]++;
 		break;
 
 	case DevelopementCard:
 		resources[Ore] -= 1;
 		resources[Grain] -= 1;
 		resources[Wool] -= 1;
+
+		builtItems[DevelopementCard]++;
 		break;
 	}
+}
+
+unsigned int Player::GetBuiltItemCount(Building building) const
+{
+	return builtItems.at(building);
 }
 
 unsigned int Player::GetResourceCount(Resource res) const

@@ -28,7 +28,7 @@ void Exec_Print(const strvec& params)
 	} 
 	else if (params[1] == "resources")
 	{
-		GameState::GetState()->GetCurrentPlayer().PrintResources();
+		GameState::GetState()->GetCurrentPlayer()->PrintResources();
 	}
 	else if (params[1] == "costs")
 	{
@@ -92,6 +92,12 @@ void Exec_Build(const strvec& params)
 
 void Exec_Roll(const strvec& params)
 {
+	if (GameState::GetState()->IsSetupPhase())
+	{
+		printf("Cannot roll during setup!\n");
+		return;
+	}
+
 	int die1, die2;
 	for (int i = 0; i < 20; i++)
 	{
@@ -190,4 +196,35 @@ void MainLoop()
 	}
 
 	GameState::CleanUp();
+}
+
+void RobberLoop()
+{
+	char command[128];
+	int id = 0;
+
+	// Loop to move the robber
+	while (true)
+	{
+		printf("Move Robber to (Tile ID) : ");
+		std::cin.getline(command, 128);
+
+		id = atoi(command);
+
+		if (id < 1 || id > NUMBER_OF_TILES)
+		{
+			printf("Tile ID must be between 01 and %d\n", NUMBER_OF_TILES);
+		}
+		else if (GameState::GetState()->GetRobberTile() == id)
+		{
+			printf("You must move the robber to a different tile\n");
+		}
+		else
+		{
+			GameState::GetState()->SetRobberTile(id);
+			break;
+		}
+	}
+
+	// Loop to choose which player to steal from
 }

@@ -73,7 +73,7 @@ std::string InitRandomBoard()
 			maxRollValues[roll]--;
 		}
 
-		Tile t(type, roll+2);
+		Tile t(i + 1, type, roll + 2);
 
 		memcpy(t.nodes, tileNodes[i], sizeof(unsigned int) * NODES_PER_TILE);
 

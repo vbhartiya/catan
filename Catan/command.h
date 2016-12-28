@@ -14,3 +14,4 @@ typedef std::vector<std::string> strvec;
 COMMANDS
 
 void MainLoop();
+void RobberLoop();

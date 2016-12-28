@@ -11,12 +11,13 @@ struct Tile
 {
 	Resource type;
 	unsigned int roll;
+	unsigned int id;
 	std::string odds;
 
 	unsigned int nodes[NODES_PER_TILE];
 
-	Tile() : type(Resource::NumResources), roll(0), odds("") {}
-	Tile(Resource type, unsigned int roll);
+	Tile() : type(Resource::NumResources), roll(0), id(0), odds("") {}
+	Tile(unsigned int id, Resource type, unsigned int roll);
 
 	std::string GetType() const;
 	std::string GetRoll() const;
@@ -47,13 +48,16 @@ public:
 	void EndTurn();
 
 	void AddTile(const Tile& tile);
+	void SetRobberTile(unsigned int id);
 
 	std::string& GetBoard();
 	void DistributeResources(int roll);
 
-	Player GetCurrentPlayer();
-	int GetCurrentPlayerId();
-	int GetCurrentPlayerColor();
+	Player* GetCurrentPlayer();
+	int GetCurrentPlayerId() const;
+	int GetCurrentPlayerColor() const;
+	int GetRobberTile() const;
+	bool IsSetupPhase() const;
 
 private:
 	GameState();
@@ -64,6 +68,8 @@ private:
 	std::string board;
 	int currentPlayer;
 	bool setupPhase;
+	bool reverse;
+	int robber;
 
 	Player players[NUMBER_OF_PLAYERS];
 	Tile tiles[NUMBER_OF_ROLLS][MAX_TILES_PER_ROLL];

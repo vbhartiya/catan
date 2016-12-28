@@ -1,18 +1,21 @@
 #include <map>
 #include <string>
+#include <vector>
 
 #include "board.h"
 #include "enums.h"
 #include "player.h"
 #include "renderer.h"
 #include "gamestate.h"
+#include "command.h"
 
 static char colorChars[] = { 'R', 'C', 'Y', 'G' };
 static int colorInts[] = { 12, 11, 14, 10 };
 
 
-Tile::Tile(Resource type, unsigned int roll)
+Tile::Tile(unsigned int id, Resource type, unsigned int roll)
 {
+	this->id = id;
 	this->type = type;
 	if (type == Desert)
 	{
@@ -56,11 +59,12 @@ std::string Tile::GetType() const
 
 GameState* GameState::state = nullptr;
 
-GameState::GameState()
+GameState::GameState():
+	board(""),
+	currentPlayer(-1),
+	setupPhase(true),
+	reverse(false)
 {
-	board = "";
-	currentPlayer = -1;
-	setupPhase = true;
 }
 
 GameState* GameState::GetState()
@@ -78,7 +82,7 @@ void GameState::Setup()
 	state->board = InitRandomBoard();
 	state->currentPlayer = 0;
 	state->setupPhase = true;
-
+	
 	for (int i = 0; i < NUMBER_OF_NODES; i++)
 	{
 		state->nodes[i] = Node();
@@ -119,7 +123,7 @@ void GameState::DistributeResources(int roll)
 
 	if (roll == 7)
 	{
-		/// TODO : Add mechanics for robber
+		RobberLoop();
 		return;
 	}
 
@@ -141,19 +145,29 @@ void GameState::DistributeResources(int roll)
 	}
 }
 
-Player GameState::GetCurrentPlayer()
+Player* GameState::GetCurrentPlayer()
 {
-	return players[currentPlayer];
+	return &players[currentPlayer];
 }
 
-int GameState::GetCurrentPlayerId()
+int GameState::GetCurrentPlayerId() const
 {
 	return currentPlayer;
 }
 
-int GameState::GetCurrentPlayerColor()
+int GameState::GetCurrentPlayerColor() const
 {
 	return colorInts[currentPlayer];
+}
+
+int GameState::GetRobberTile() const
+{
+	return state->robber;
+}
+
+bool GameState::IsSetupPhase() const
+{
+	return setupPhase;
 }
 
 void GameState::Build(char type, int source, int destination)
@@ -176,7 +190,7 @@ void GameState::Build(char type, int source, int destination)
 	{
 	case 'r':
 	{
-		if (!setupPhase && !GetCurrentPlayer().CanBuild(Road))
+		if (!setupPhase && !GetCurrentPlayer()->CanBuild(Road))
 		{
 			printf("Not enough resources to build a road.\n");
 			return;
@@ -215,7 +229,7 @@ void GameState::Build(char type, int source, int destination)
 		{
 			nodes[source].neighbours[destination] = currentPlayer;
 			nodes[destination].neighbours[source] = currentPlayer;
-			GetCurrentPlayer().Build(Road);
+			GetCurrentPlayer()->Build(Road);
 		}
 		break;
 	}
@@ -223,7 +237,7 @@ void GameState::Build(char type, int source, int destination)
 	{
 		if (!setupPhase)
 		{
-			if (!GetCurrentPlayer().CanBuild(Settlement))
+			if (!GetCurrentPlayer()->CanBuild(Settlement))
 			{
 				printf("Not enough resources to build a settlement.\n");
 				return;
@@ -260,12 +274,12 @@ void GameState::Build(char type, int source, int destination)
 			nodes[source].building = Settlement;
 			nodes[source].owningPlayer = currentPlayer;
 
-			GetCurrentPlayer().Build(Settlement);
+			GetCurrentPlayer()->Build(Settlement);
 		}
 		break;
 	}
 	case 'c':
-		if (!setupPhase && !GetCurrentPlayer().CanBuild(City))
+		if (!setupPhase && !GetCurrentPlayer()->CanBuild(City))
 		{
 			printf("Not enough resources to build a city.\n");
 		}
@@ -277,7 +291,7 @@ void GameState::Build(char type, int source, int destination)
 		{
 			nodes[source].building = City;
 
-			GetCurrentPlayer().Build(City);
+			GetCurrentPlayer()->Build(City);
 		}
 		break;
 	}
@@ -285,6 +299,36 @@ void GameState::Build(char type, int source, int destination)
 
 void GameState::EndTurn()
 {
+	if (setupPhase)
+	{
+		if(players[currentPlayer].GetBuiltItemCount(Settlement) < ((reverse) ? 2U : 1U) ||
+		   players[currentPlayer].GetBuiltItemCount(Road) < ((reverse) ? 2U : 1U))
+		{
+			printf("You must build 1 settlement and 1 road.\n");
+			return;
+		}
+
+		// If we're at the first player in reverse, then this is the last turn of the setup phase
+		if (currentPlayer == 0 && reverse)
+		{
+			reverse = false;
+			setupPhase = false;
+			return;
+		}
+		// if we're at the last player, then we need to go in reverse order
+		else if (currentPlayer == NUMBER_OF_PLAYERS - 1 && !reverse)
+		{
+			reverse = true;
+			return;
+		}
+
+		if (reverse)
+		{
+			currentPlayer = (currentPlayer - 1) % NUMBER_OF_PLAYERS;
+			return;
+		}
+	}
+
 	currentPlayer = (currentPlayer + 1) % NUMBER_OF_PLAYERS;
 }
 
@@ -293,6 +337,7 @@ void GameState::AddTile(const Tile & tile)
 	if (tile.type == Resource::Desert)
 	{
 		tiles[7 - 2][0] = tile;
+		state->robber = tile.id;
 	}
 	else
 	{
@@ -305,5 +350,10 @@ void GameState::AddTile(const Tile & tile)
 			tiles[tile.roll - 2][1] = tile;
 		}
 	}
+}
+
+void GameState::SetRobberTile(unsigned int id)
+{
+	state->robber = id;
 }
 

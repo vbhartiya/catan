@@ -1,8 +1,12 @@
 #include <string>
 #include <cstdio>
 #include <cstdlib>
+#include <map>
 #include <Windows.h>
 
+#include "enums.h"
+#include "player.h"
+#include "gamestate.h"
 #include "renderer.h"
 
 void PrintColoredText(int color, const char* text) {
@@ -38,8 +42,8 @@ void PrintBoard(const std::string& board)
 {
 	std::string code = "";
 	bool openBracket = false, shouldParse = false;
-
-	unsigned int index = 45;
+	
+	unsigned int index = 1;
 
 	for (char c : board)
 	{
@@ -68,48 +72,57 @@ void PrintBoard(const std::string& board)
 
 		if (shouldParse)
 		{
-			if (code[1] == 'N')
+			switch (code[1])
 			{
-				unsigned int id = atoi(code.substr(2, 2).c_str());
-
-				char buf[3];
-				if (code[5] == 'C')
+			case 'N':
 				{
-					sprintf_s(buf, "[]", id);
-				}
-				else
-				{
-					sprintf_s(buf, "%02d", id);
-				}
+					unsigned int id = atoi(code.substr(2, 2).c_str());
 
-				int color = ParseColor(code[4]);
-				PrintColoredText(color, buf);
+					char buf[3];
+					if (code[5] == 'C')
+					{
+						sprintf_s(buf, "[]", id);
+					}
+					else
+					{
+						sprintf_s(buf, "%02d", id);
+					}
+
+					int color = ParseColor(code[4]);
+					PrintColoredText(color, buf);
+					break;
+				}
+			case 'R':
+				{
+					printf(" %c ", GameState::GetState()->GetRobberTile() == index ? 'R' : ' ');
+					index++;
+					break;
+				}
+			default:
+				{
+					unsigned int src = atoi(code.substr(1, 2).c_str());
+					unsigned int dst = atoi(code.substr(3, 2).c_str());
+
+					char buf[14];
+
+					switch (code[code.length() - 2])
+					{
+					case '-':
+						sprintf_s(buf, "%s", "-------------");
+						break;
+					case '\\':
+						sprintf_s(buf, "%s", "\\");
+						break;
+					case '/':
+						sprintf_s(buf, "%s", "/");
+						break;
+					}
+
+					int color = ParseColor(code[5]);
+					PrintColoredText(color, buf);
+					break;
+				}
 			}
-			else
-			{
-				unsigned int src = atoi(code.substr(1, 2).c_str());
-				unsigned int dst = atoi(code.substr(3, 2).c_str());
-
-
-				char buf[14];
-
-				switch (code[code.length() - 2])
-				{
-				case '-':
-					sprintf_s(buf, "%s", "-------------");
-					break;
-				case '\\':
-					sprintf_s(buf, "%s", "\\");
-					break;
-				case '/':
-					sprintf_s(buf, "%s", "/");
-					break;
-				}
-
-				int color = ParseColor(code[5]);
-				PrintColoredText(color, buf);
-			}
-
 			code = "";
 			shouldParse = false;
 		}

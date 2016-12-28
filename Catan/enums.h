@@ -1,7 +1,7 @@
 #pragma once
 
 enum Resource { Desert, Grain, Brick, Wool, Lumber, Ore, NumResources };
-enum Building { None, Settlement, City, Road, DevelopementCard };
+enum Building { None, Settlement, City, Road, DevelopementCard, NumBuildings };
 enum Port { NoPort, AnyPort, GrainPort, BrickPort, WoolPort, LumberPort, OrePort };
 
 static char* ResourceToString(Resource res, bool caps = false)
