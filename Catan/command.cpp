@@ -3,16 +3,27 @@
 #include <vector>
 #include <algorithm>
 #include <iostream>
+#include <sstream>
 
 #include <ctype.h>
 #include <Windows.h>
 
+#include "utility.h"
 #include "enums.h"
 #include "command.h"
 #include "board.h"
 #include "player.h"
 #include "gamestate.h"
 #include "renderer.h"
+
+void ParseResources(svitr start, svitr end, resmap* resources)
+{
+	resources->clear();
+	for (svitr i = start; i != end; i+=2)
+	{
+		resources->insert_or_assign(StringToResource(*(i + 1)), (unsigned int)(atoi(i->c_str())));
+	}
+}
 
 void Exec_Print(const strvec& params)
 {
@@ -90,6 +101,21 @@ void Exec_Build(const strvec& params)
 	
 }
 
+void Exec_Trade(const strvec& params)
+{
+	auto forLoc = std::find(params.begin(), params.end(), "for");
+	auto withLoc = std::find(forLoc, params.end(), "with");
+
+	int playerID = atoi((std::find(forLoc, params.end(), "player") + 1)->c_str());
+
+	resmap resToGive, resToTake;
+
+	ParseResources(params.begin() + 1, forLoc, &resToGive);
+	ParseResources(forLoc + 1, withLoc, &resToTake);
+
+	GameState::GetState()->TradeResources(resToGive, resToTake, playerID);
+}
+
 void Exec_Roll(const strvec& params)
 {
 	if (GameState::GetState()->IsSetupPhase())
@@ -129,14 +155,6 @@ void Exec_Help(const strvec& params)
 	COMMANDS
 }
 
-std::string ToLowerString(const std::string& str)
-{
-	std::string lowered(str);
-	std::transform(str.begin(), str.end(), lowered.begin(), tolower);
-
-	return lowered;
-}
-
 bool Execute(const strvec& arguments)
 {
 #undef FUNC
@@ -164,6 +182,10 @@ void ParseCommand(const char* command, std::vector<std::string>& arguments)
 		{
 			c++;
 			arguments.push_back("");
+		}
+		else if (command[i] == ',')
+		{
+			continue;
 		}
 		else
 		{
@@ -227,4 +249,31 @@ void RobberLoop()
 	}
 
 	// Loop to choose which player to steal from
+}
+
+bool ConfirmTrade(const resmap & toGive, const resmap & toTake, int color)
+{
+	std::stringstream s;
+	s << "Give ";
+
+	for (std::pair<Resource, unsigned int> p : toTake)
+	{
+		s << p.second << " " << ResourceToString(p.first) << ", ";
+	}
+
+	s.seekp(-2, std::ios_base::cur);
+
+	s << " to Player " << (GameState::GetState()->GetCurrentPlayerId() + 1) << " for ";
+
+	for (std::pair<Resource, unsigned int> p : toGive)
+	{
+		s << p.second << " " << ResourceToString(p.first) << ", ";
+	}
+
+	s.seekp(-2, std::ios_base::cur);
+
+	s << "? [y/n] > " << std::endl;
+
+	PrintColoredText(color, s.str().c_str());
+	return false;
 }

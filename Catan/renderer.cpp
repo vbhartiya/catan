@@ -1,11 +1,15 @@
 #include <string>
+#include <algorithm>
 #include <cstdio>
 #include <cstdlib>
 #include <map>
+#include <vector>
 #include <Windows.h>
 
+#include "utility.h"
 #include "enums.h"
 #include "player.h"
+#include "command.h"
 #include "gamestate.h"
 #include "renderer.h"
 
@@ -81,7 +85,7 @@ void PrintBoard(const std::string& board)
 					char buf[3];
 					if (code[5] == 'C')
 					{
-						sprintf_s(buf, "[]", id);
+						sprintf_s(buf, "[]");
 					}
 					else
 					{

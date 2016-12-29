@@ -1,13 +1,15 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <algorithm>
 
+#include "utility.h"
 #include "board.h"
 #include "enums.h"
 #include "player.h"
 #include "renderer.h"
-#include "gamestate.h"
 #include "command.h"
+#include "gamestate.h"
 
 static char colorChars[] = { 'R', 'C', 'Y', 'G' };
 static int colorInts[] = { 12, 11, 14, 10 };
@@ -142,6 +144,14 @@ void GameState::DistributeResources(int roll)
 				players[playerIndex].AddResource(t.type, (nodes[nodeIndex].building == City) ? 2 : 1);
 			}
 		}
+	}
+}
+
+void GameState::TradeResources(const resmap & toGive, const resmap & toTake, int playerID)
+{
+	if (ConfirmTrade(toGive, toTake, colorInts[playerID - 1]))
+	{
+
 	}
 }
 

@@ -160,6 +160,7 @@
     <ClInclude Include="gamestate.h" />
     <ClInclude Include="player.h" />
     <ClInclude Include="renderer.h" />
+    <ClInclude Include="utility.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="ToDo.txt" />

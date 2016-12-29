@@ -1,9 +1,13 @@
 #include <map>
+#include <vector>
 #include <string>
+#include <algorithm>
 #include <time.h>
 
+#include "utility.h"
 #include "enums.h"
 #include "player.h"
+#include "command.h"
 #include "gamestate.h"
 #include "board.h"
 

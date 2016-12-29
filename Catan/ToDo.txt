@@ -1,6 +1,5 @@
 Things to do:
-- Setup stage
-	- Check that the player has placed one settlement and one road
+- Trade between players
 - Developement cards
 	- add a probability curve representing the distribution in a normal deck
 	- card effects

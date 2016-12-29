@@ -52,6 +52,7 @@ public:
 
 	std::string& GetBoard();
 	void DistributeResources(int roll);
+	void TradeResources(const resmap& toGive, const resmap& toTake, int playerID);
 
 	Player* GetCurrentPlayer();
 	int GetCurrentPlayerId() const;

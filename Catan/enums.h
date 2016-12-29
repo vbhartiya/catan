@@ -24,3 +24,35 @@ static char* ResourceToString(Resource res, bool caps = false)
 
 	return "";
 }
+
+static Resource StringToResource(const std::string& res)
+{
+	std::string lowRes = ToLowerString(res);
+
+	if (lowRes == "desert")
+	{
+		return Desert;
+	} 
+	else if (lowRes == "grain")
+	{
+		return Grain;
+	}
+	else if (lowRes == "brick")
+	{
+		return Brick;
+	}
+	else if (lowRes == "lumber")
+	{
+		return Lumber;;
+	}
+	else if (lowRes == "ore")
+	{
+		return Ore;
+	}
+	else if (lowRes == "wool")
+	{
+		return Wool;
+	}
+
+	return NumResources;
+}

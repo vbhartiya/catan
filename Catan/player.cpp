@@ -1,7 +1,9 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <algorithm>
 
+#include "utility.h"
 #include "enums.h"
 #include "player.h"
 
