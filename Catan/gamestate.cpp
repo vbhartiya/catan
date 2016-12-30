@@ -149,10 +149,44 @@ void GameState::DistributeResources(int roll)
 
 void GameState::TradeResources(const resmap & toGive, const resmap & toTake, int playerID)
 {
-	if (ConfirmTrade(toGive, toTake, colorInts[playerID - 1]))
+	// Check that current player has enough resources
+	for (std::pair<Resource, unsigned int> p : toGive)
 	{
-
+		if (p.second < 1)
+		{
+			printf("Invalid amount for resource.\n");
+			return;
+		}
+		if (players[currentPlayer].GetResourceCount(p.first) < p.second)
+		{
+			printf("Not enough resources to trade.\n");
+			return;
+		}
 	}
+	
+	// Confirm the trade with the second player
+	if (!ConfirmTrade(toGive, toTake, colorInts[playerID - 1]))
+	{
+		printf("Player %d rejected the trade.\n", playerID);
+		return;
+	}
+	
+	// Check that the second player has enough resources
+	for (std::pair<Resource, unsigned int> p : toTake)
+	{
+		if (p.second < 1)
+		{
+			printf("Invalid amount for resource.\n");
+			return;
+		}
+		if (players[playerID - 1].GetResourceCount(p.first) < p.second)
+		{
+			printf("Not enough resources to trade.\n");
+			return;
+		}
+	}
+
+	///TODO: Perform the actual transaction
 }
 
 Player* GameState::GetCurrentPlayer()

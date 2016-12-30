@@ -21,7 +21,10 @@ void ParseResources(svitr start, svitr end, resmap* resources)
 	resources->clear();
 	for (svitr i = start; i != end; i+=2)
 	{
-		resources->insert_or_assign(StringToResource(*(i + 1)), (unsigned int)(atoi(i->c_str())));
+		int amount = atoi(i->c_str());
+		Resource res = StringToResource(*(i + 1));
+
+		resources->insert_or_assign(res, (unsigned int) abs(amount));
 	}
 }
 
@@ -106,12 +109,24 @@ void Exec_Trade(const strvec& params)
 	auto forLoc = std::find(params.begin(), params.end(), "for");
 	auto withLoc = std::find(forLoc, params.end(), "with");
 
-	int playerID = atoi((std::find(forLoc, params.end(), "player") + 1)->c_str());
+	int playerID = atoi((std::find(withLoc, params.end(), "player") + 1)->c_str());
+
+	if (playerID < 1 || playerID > NUMBER_OF_PLAYERS || playerID - 1 == GameState::GetState()->GetCurrentPlayerId())
+	{
+		printf("Invalid Player ID.\n");
+		return;
+	}
 
 	resmap resToGive, resToTake;
 
 	ParseResources(params.begin() + 1, forLoc, &resToGive);
 	ParseResources(forLoc + 1, withLoc, &resToTake);
+
+	if (resToGive.size() < 1 || resToTake.size() < 1)
+	{
+		printf("You must trade at least one resource.\n");
+		return;
+	}
 
 	GameState::GetState()->TradeResources(resToGive, resToTake, playerID);
 }
@@ -272,8 +287,12 @@ bool ConfirmTrade(const resmap & toGive, const resmap & toTake, int color)
 
 	s.seekp(-2, std::ios_base::cur);
 
-	s << "? [y/n] > " << std::endl;
+	s << "? [y/n] > ";
 
 	PrintColoredText(color, s.str().c_str());
-	return false;
+	
+	char c[1];
+	scanf_s("%c", c);
+
+	return c[0] == 'y';
 }
