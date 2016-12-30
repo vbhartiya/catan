@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <sstream>
 
 #include "utility.h"
 #include "board.h"
@@ -61,12 +62,14 @@ std::string Tile::GetType() const
 
 GameState* GameState::state = nullptr;
 
-GameState::GameState():
+GameState::GameState() :
 	board(""),
 	currentPlayer(-1),
 	setupPhase(true),
-	reverse(false)
+	reverse(false),
+	turnid(0)
 {
+	history.push_back(strvec());
 }
 
 GameState* GameState::GetState()
@@ -122,6 +125,7 @@ void GameState::DistributeResources(int roll)
 	PrintColoredText(colorInts[currentPlayer], buffer);
 
 	printf(" rolled %d\n\n", roll);
+	history[turnid].push_back("Player " + std::to_string(currentPlayer + 1) + " rolled " + std::to_string(roll) + ".");
 
 	if (roll == 7)
 	{
@@ -140,8 +144,10 @@ void GameState::DistributeResources(int roll)
 			if (nodes[nodeIndex].owningPlayer > -1)
 			{
 				int playerIndex = nodes[nodeIndex].owningPlayer;
+				int amount = (nodes[nodeIndex].building == City) ? 2 : 1;
 
-				players[playerIndex].AddResource(t.type, (nodes[nodeIndex].building == City) ? 2 : 1);
+				players[playerIndex].AddResource(t.type, amount);
+				history[turnid].push_back("Player " + std::to_string(playerIndex + 1) + " received " + std::to_string(amount) + " " + ResourceToString(t.type) + ".");
 			}
 		}
 	}
@@ -186,7 +192,62 @@ void GameState::TradeResources(const resmap & toGive, const resmap & toTake, int
 		}
 	}
 
-	///TODO: Perform the actual transaction
+	// Perform the trade
+	std::stringstream s;
+	s << "Player " << (currentPlayer + 1) << " traded ";
+	for (std::pair<Resource, unsigned int> p : toGive)
+	{
+		players[currentPlayer].TakeResource(p.first, p.second);
+		players[playerID - 1].AddResource(p.first, p.second);
+
+		s << p.second << " " << ResourceToString(p.first) << ", ";
+	}
+	s.seekp(-2, std::ios_base::cur);
+
+	s << " to Player " << playerID << " for ";
+
+	for (std::pair<Resource, unsigned int> p : toTake)
+	{
+		players[currentPlayer].AddResource(p.first, p.second);
+		players[playerID - 1].TakeResource(p.first, p.second);
+
+		s << p.second << " " << ResourceToString(p.first) << ", ";
+	}
+	s.seekp(-2, std::ios_base::cur);
+	s << ".  ";
+
+	history[turnid].push_back(s.str());	
+}
+
+void GameState::PrintHistory() const
+{
+	printf("==================================================\n");
+	for (int i = 0; i < history.size(); i++)
+	{
+		if (history[i].size() > 0)
+		{
+			printf("Turn %d:\n", i + 1);
+			for (std::string s : history[i])
+			{
+				printf("\t%s\n", s.c_str());
+			}
+		}
+	}
+	printf("==================================================\n");
+}
+
+void GameState::PrintLastTurn() const
+{
+	printf("==================================================\n");
+	if (history[turnid - 1].size() > 0)
+	{
+		printf("Turn %d:\n", (turnid - 1) + 1);
+		for (std::string s : history[turnid - 1])
+		{
+			printf("\t%s\n", s.c_str());
+		}
+	}
+	printf("==================================================\n");
 }
 
 Player* GameState::GetCurrentPlayer()
@@ -280,6 +341,8 @@ void GameState::Build(char type, int source, int destination)
 			nodes[source].neighbours[destination] = currentPlayer;
 			nodes[destination].neighbours[source] = currentPlayer;
 			GetCurrentPlayer()->Build(Road);
+
+			history[turnid].push_back("Player " + std::to_string(currentPlayer + 1) + " built a road from " + std::to_string(source + 1) + " to " + std::to_string(destination + 1) + ".");
 		}
 		break;
 	}
@@ -325,6 +388,8 @@ void GameState::Build(char type, int source, int destination)
 			nodes[source].owningPlayer = currentPlayer;
 
 			GetCurrentPlayer()->Build(Settlement);
+
+			history[turnid].push_back("Player " + std::to_string(currentPlayer + 1) + " built a settlement at " + std::to_string(source + 1) + ".");
 		}
 		break;
 	}
@@ -342,6 +407,7 @@ void GameState::Build(char type, int source, int destination)
 			nodes[source].building = City;
 
 			GetCurrentPlayer()->Build(City);
+			history[turnid].push_back("Player " + std::to_string(currentPlayer + 1) + " upgraded the settlement at " + std::to_string(source + 1) + " to a city.");
 		}
 		break;
 	}
@@ -380,6 +446,9 @@ void GameState::EndTurn()
 	}
 
 	currentPlayer = (currentPlayer + 1) % NUMBER_OF_PLAYERS;
+
+	turnid++;
+	history.push_back(strvec());
 }
 
 void GameState::AddTile(const Tile & tile)
@@ -405,5 +474,6 @@ void GameState::AddTile(const Tile & tile)
 void GameState::SetRobberTile(unsigned int id)
 {
 	state->robber = id;
+	history[turnid].push_back("Player " + std::to_string(currentPlayer + 1) + " moved the robber to " + std::to_string(id) + ".");
 }
 

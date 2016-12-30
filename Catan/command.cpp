@@ -48,6 +48,14 @@ void Exec_Print(const strvec& params)
 	{
 		printf(COSTS, "Road", "Settlement", "City", "Developement Card");
 	}
+	else if (params[1] == "history")
+	{
+		GameState::GetState()->PrintHistory();
+	}
+	else if (params[1] == "lastturn")
+	{
+		GameState::GetState()->PrintHistory();
+	}
 }
 
 void Exec_Build(const strvec& params)
@@ -216,6 +224,8 @@ void MainLoop()
 	GameState* state = GameState::GetState();
 	
 	GameState::Setup();
+
+	printf("%s", WELCOME);
 
 	while (true)
 	{

@@ -6,7 +6,7 @@ typedef std::map<Resource, unsigned int> resmap;
 
 #define FUNC(x, usage) void Exec_##x(const strvec& params);
 
-#define COMMANDS FUNC(Print, "<board, resources, costs>")\
+#define COMMANDS FUNC(Print, "<board, resources, costs, history, lastturn>")\
 				 FUNC(Build, "<road, settlement, city> <vertex id> [destination id]")\
 				 FUNC(Trade, "<resources> for <resources> with Player <player id>")\
 				 FUNC(Roll, "<>")\

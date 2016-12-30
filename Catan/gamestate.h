@@ -7,6 +7,8 @@
 #define NUMBER_OF_PLAYERS	4
 #define MAX_TILES_PER_ROLL	2
 
+typedef std::vector< std::vector <std::string> > logvec;
+
 struct Tile
 {
 	Resource type;
@@ -54,6 +56,8 @@ public:
 	void DistributeResources(int roll);
 	void TradeResources(const resmap& toGive, const resmap& toTake, int playerID);
 
+	void PrintHistory() const;
+	void PrintLastTurn() const;
 	Player* GetCurrentPlayer();
 	int GetCurrentPlayerId() const;
 	int GetCurrentPlayerColor() const;
@@ -71,6 +75,9 @@ private:
 	bool setupPhase;
 	bool reverse;
 	int robber;
+
+	logvec history;
+	int turnid;
 
 	Player players[NUMBER_OF_PLAYERS];
 	Tile tiles[NUMBER_OF_ROLLS][MAX_TILES_PER_ROLL];
