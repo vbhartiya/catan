@@ -1,8 +1,7 @@
 Things to do:
-- Trade between players
+- Negotiation functionality
+- Add trading with the bank
 - Developement cards
 	- add a probability curve representing the distribution in a normal deck
 	- card effects
-- Turn history
-- Game history
-- Add welcome message
+- Add save/load functionality
